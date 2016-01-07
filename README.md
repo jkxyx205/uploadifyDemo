@@ -1,4 +1,4 @@
-#uploadify Demo
+#Uploadify Demo
 
 ###Flash mode
 
