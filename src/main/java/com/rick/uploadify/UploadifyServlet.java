@@ -1,5 +1,6 @@
 package com.rick.uploadify;
 
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -30,15 +31,17 @@ public class UploadifyServlet extends HttpServlet {
             //可以上传多个文件
             List<FileItem> list = (List<FileItem>)upload.parseRequest(request);
             for(FileItem item : list){
-                if(!item.isFormField()){
+                if(!item.isFormField()){ //is file upload
                     String name = item.getName() ;
+                    name = name.substring(name.lastIndexOf(File.separator)+1); //IE9 is full path
+
                     String fileSuffix  = name.substring(name.lastIndexOf(".")+1,name.length());
                     String oldName = name.replaceAll("." + fileSuffix,"");
                     String fileName = oldName;//DateUtils.getNowTime(DateUtils.DATE_All_KEY_STR);
                     String newName = fileName + "." + fileSuffix;
                     OutputStream out = new FileOutputStream(new File(path,newName));
                     InputStream in = item.getInputStream() ;
-                    int length = 0 ;
+                    int length ;
                     byte [] buf = new byte[1024] ;
                     while( (length = in.read(buf) ) != -1){
                         out.write(buf, 0, length);
@@ -50,20 +53,19 @@ public class UploadifyServlet extends HttpServlet {
                     map.put("fileName",oldName);
                     map.put("filePath",fileName);
                     break;
-                } else { // is file
+                } else { // is parameter
                     System.out.println(item.getString() + ".............");
                 }
             }
         }catch (Exception e) {
             System.out.println("出错了：" + e.getMessage());
         }
-        response.setContentType("text/xml; charset=UTF-8");
+        response.setContentType("text/plain; charset=UTF-8");
         response.setHeader("Cache-Control", "no-cache");
         response.setHeader("Pragma", "no-cache");
         PrintWriter out = response.getWriter();
-       // JSONObject jsonObject = JSONObject.fromObject(map);
-        //String msg =  jsonObject.toString();
-        out.print(map);
+        String msg = JSONObject.toJSONString(map);
+        out.print(msg);
         out.close();
     }
 }
